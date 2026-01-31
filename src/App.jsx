@@ -74,6 +74,16 @@ const styles = {
     background: "#141a22",
     border: "1px solid #1f2632",
   },
+  nav: { display: "flex", gap: 8 },
+  navButton: (active) => ({
+    borderRadius: 9999,
+    padding: "6px 12px",
+    border: "1px solid #1f2632",
+    background: active ? "#1a2230" : "#0f1520",
+    color: "#e6e9ef",
+    fontSize: 12,
+    cursor: "pointer",
+  }),
 
   grid: {
     display: "grid",
@@ -86,6 +96,42 @@ const styles = {
     borderRadius: 16,
     padding: 16,
     cursor: "pointer",
+  },
+  tableWrapper: {
+    background: "#0f1520",
+    border: "1px solid #1f2632",
+    borderRadius: 16,
+    padding: 16,
+  },
+  table: {
+    width: "100%",
+    borderCollapse: "collapse",
+    fontSize: 14,
+  },
+  th: {
+    textAlign: "left",
+    fontSize: 12,
+    textTransform: "uppercase",
+    letterSpacing: "0.04em",
+    color: "#9aa4b2",
+    borderBottom: "1px solid #1f2632",
+    padding: "8px 6px",
+  },
+  td: {
+    padding: "10px 6px",
+    borderBottom: "1px solid #1f2632",
+  },
+  teamCell: { display: "flex", alignItems: "center", gap: 10 },
+  pos: {
+    width: 24,
+    height: 24,
+    borderRadius: "50%",
+    background: "#151c26",
+    border: "1px solid #1f2632",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: 12,
   },
 };
 
@@ -152,16 +198,83 @@ function TeamProfile({ team, onBack }) {
   );
 }
 
+function TableOverview({ onTeam }) {
+  return (
+    <div style={styles.tableWrapper}>
+      <table style={styles.table}>
+        <thead>
+          <tr>
+            <th style={styles.th}>#</th>
+            <th style={styles.th}>Lag</th>
+            <th style={styles.th}>K</th>
+            <th style={styles.th}>MF</th>
+            <th style={styles.th}>P</th>
+          </tr>
+        </thead>
+        <tbody>
+          {dummyTable.map((row) => (
+            <tr key={row.team}>
+              <td style={styles.td}>
+                <span style={styles.pos}>{row.pos}</span>
+              </td>
+              <td style={styles.td}>
+                <button
+                  type="button"
+                  onClick={() => onTeam(row.team)}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    padding: 0,
+                    color: "#e6e9ef",
+                    cursor: "pointer",
+                    fontSize: 14,
+                  }}
+                >
+                  <span style={styles.teamCell}>
+                    <strong>{row.team}</strong>
+                  </span>
+                </button>
+              </td>
+              <td style={styles.td}>{row.played}</td>
+              <td style={styles.td}>{row.gd}</td>
+              <td style={styles.td}>
+                <strong>{row.points}</strong>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export default function App() {
   const [view, setView] = useState("LIST");
   const [selectedMatch, setSelectedMatch] = useState(null);
   const [selectedTeam, setSelectedTeam] = useState(null);
+  const [previousView, setPreviousView] = useState("LIST");
 
   return (
     <div style={styles.page}>
       <div style={styles.container}>
         <header style={styles.header}>
           <h1 style={styles.title}>🏑 Eliteserien Menn</h1>
+          <div style={styles.nav}>
+            <button
+              type="button"
+              style={styles.navButton(view === "LIST")}
+              onClick={() => setView("LIST")}
+            >
+              Kamper
+            </button>
+            <button
+              type="button"
+              style={styles.navButton(view === "TABLE")}
+              onClick={() => setView("TABLE")}
+            >
+              Tabell
+            </button>
+          </div>
           <span style={styles.pill}>Innebandy</span>
         </header>
 
@@ -185,6 +298,17 @@ export default function App() {
             match={selectedMatch}
             onBack={() => setView("LIST")}
             onTeam={(team) => {
+              setPreviousView("MATCH");
+              setSelectedTeam(team);
+              setView("TEAM");
+            }}
+          />
+        )}
+
+        {view === "TABLE" && (
+          <TableOverview
+            onTeam={(team) => {
+              setPreviousView("TABLE");
               setSelectedTeam(team);
               setView("TEAM");
             }}
@@ -192,7 +316,7 @@ export default function App() {
         )}
 
         {view === "TEAM" && selectedTeam && (
-          <TeamProfile team={selectedTeam} onBack={() => setView("LIST")} />
+          <TeamProfile team={selectedTeam} onBack={() => setView(previousView)} />
         )}
       </div>
     </div>
